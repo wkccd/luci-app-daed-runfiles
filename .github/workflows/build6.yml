@@ -141,7 +141,7 @@ jobs:
           merge-multiple: true
 
       - name: Create or update GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare.outputs.release_tag }}
           name: ${{ needs.prepare.outputs.release_name }}
@@ -149,6 +149,30 @@ jobs:
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
           target_commitish: ${{ github.sha }}
+
+      - name: Delete Older Releases
+        uses: dev-drprasad/delete-older-releases@master
+        with:
+          keep_latest: 3
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{secrets.ACTIONS_DEPLOY_KEY}}
+        continue-on-error: true
+
+      - name: Cleanup Old Action Artifacts
+        uses: c-hive/gha-remove-artifacts@master
+        with:
+          age: '3 days'
+          skip-recent: 3
+        continue-on-error: true
+
+      - name: Cleanup Workflow Logs
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          token: ${{secrets.ACTIONS_DEPLOY_KEY}}
+          repository: ${{ github.repository }}
+          retain_days: 3
+        continue-on-error: true
 
       
 
